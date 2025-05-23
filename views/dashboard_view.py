@@ -51,8 +51,7 @@ def render_dashboard_page():
         st.rerun()
         return
     
-    st.subheader("Mapa de calor")
-    st.subheader("Estado de SP")
+    st.markdown("### Mapa de Calor - Estado de SP")
 
     dados = pd.read_csv("lat_long.csv")
     dados2 = np.genfromtxt("lat_long.csv", delimiter = ",")
@@ -92,20 +91,18 @@ def render_dashboard_page():
 
     #Mapa de Calor
     HeatMap(data = dados2.tolist(),gradient = dicionario_cores,
-       min_opacity = 0.1,
-       radius = 20,
-       blur = 5,
-       name = "Região de Calor").add_to(mapa_estado_sp_calor)
+    min_opacity = 0.1,
+    radius = 20,
+    blur = 5,
+    name = "Região de Calor").add_to(mapa_estado_sp_calor)
 
 
     #Controle de camadas
     folium.LayerControl(position = "topleft").add_to(mapa_estado_sp_calor)
         
-    st_data = st_folium(mapa_estado_sp_calor, width="100%", height=500, key="mapa_estado_sp_calor")
-    
-    st.subheader("Mapa Coropleto")
+    st_folium(mapa_estado_sp_calor, width="100%", height=500, key="mapa_estado_sp_calor")
 
-    st.subheader("Estado de SP")
+    st.markdown("### Mapa Coropleto - Estado de SP")
 
     mapa_estado_sp = folium.Map([-22.71579000, -47.77297000], 
                             tiles = "cartodbpositron",
@@ -122,7 +119,7 @@ def render_dashboard_page():
                     nan_fill_color = "white",
                     name = "Dados").add_to(mapa_estado_sp)
     
-    st_data = st_folium(mapa_estado_sp, width="100%", height=500, key="mapa_estado_sp")
+    st_folium(mapa_estado_sp, width="100%", height=500, key="mapa_estado_sp")
 
     # #Adicionando a função de destaque
     # estilo = lambda x: {"fillColor": "white",
