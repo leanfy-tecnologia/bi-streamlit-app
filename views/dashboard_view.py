@@ -72,7 +72,7 @@ def render_dashboard_page():
                     "weight": 1}
 
     folium.GeoJson(geojson_estado_sp, style_function = estilo,
-        name = "Municipios", key="A").add_to(mapa_estado_sp_calor)
+        name = "Municipio de SP", key="A").add_to(mapa_estado_sp_calor)
 
     #Paleta de cores
     indices = [0, 0.3, 0.7, 1]
@@ -91,7 +91,11 @@ def render_dashboard_page():
     colormap.scale(0, 500).add_to(mapa_estado_sp_calor)
 
     #Mapa de Calor
-    HeatMap(data = dados2.tolist()).add_to(mapa_estado_sp_calor)
+    HeatMap(data = dados2.tolist(),gradient = dicionario_cores,
+       min_opacity = 0.1,
+       radius = 20,
+       blur = 5,
+       name = "Região de Calor").add_to(mapa_estado_sp_calor)
 
 
     #Controle de camadas
