@@ -13,7 +13,7 @@ def render_dashboard_page():
     Renderiza a página de dashboards interativos.
     """
 
-    geojson_estado_sp = "https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-35-mun.json"
+    geojson_estado_sp = "geojs-35-mun.json"
     geojson_piracicaba_sp = "RMP_Limite_Municipal.json"
 
     if not is_authenticated():
