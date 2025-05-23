@@ -16,17 +16,27 @@ def render_dashboard_page():
     geojson_estado_sp = "https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-35-mun.json"
     geojson_piracicaba_sp = "RMP_Limite_Municipal.json"
 
-
     if not is_authenticated():
         st.warning("Você precisa estar logado para acessar esta página.")
         return
-    
+
     st.title("📊 Dashboards")
+
+    # INJETANDO CSS PARA REMOVER ESPAÇOS EM BRANCO DOS IFRAMES
+    st.markdown(
+        """
+        <style>
+        iframe {
+            margin-bottom: -40px !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
     
     # Verificar se há um DataFrame selecionado
     if "current_df" not in st.session_state or not st.session_state.current_df:
         st.info("Por favor, faça upload ou selecione um dataset na página de Upload.")
-        # Botão para voltar para a página de upload
         if st.button("Voltar para Upload"):
             st.session_state.page = "upload"
             st.rerun()
@@ -41,7 +51,6 @@ def render_dashboard_page():
     
     if not success:
         st.error(f"Erro ao carregar o dataset: {error}")
-        # Remover dataset inválido da sessão
         del st.session_state.dataframes[df_key]
         if st.session_state.current_df == df_key:
             if st.session_state.dataframes:
@@ -54,72 +63,86 @@ def render_dashboard_page():
     st.markdown("### Mapa de Calor - Estado de SP")
 
     dados = pd.read_csv("lat_long.csv")
-    dados2 = np.genfromtxt("lat_long.csv", delimiter = ",")
+    dados2 = np.genfromtxt("lat_long.csv", delimiter=",")
     dados2 = dados2[~np.isnan(dados2).any(axis=1)]
 
-    mapa_estado_sp_calor = folium.Map([-22.71579000, -47.77297000], 
-                            tiles = "cartodbpositron",
-                            zoom_start = 6)
+    mapa_estado_sp_calor = folium.Map(
+        [-22.71579000, -47.77297000],
+        tiles="cartodbpositron",
+        zoom_start=6
+    )
 
-    #Adicionar o fundo branco
-    folium.TileLayer(tiles = branca.utilities.image_to_url([[1,1], [1,1]]),
-                    attr = "Leanfy", name = "Sem Imagem Fundo").add_to(mapa_estado_sp_calor)
+    folium.TileLayer(
+        tiles=branca.utilities.image_to_url([[1,1], [1,1]]),
+        attr="Leanfy",
+        name="Sem Imagem Fundo"
+    ).add_to(mapa_estado_sp_calor)
 
-    #Adicionando a fronteira dos municipios
-    estilo = lambda x: {"color" : "black",
-                    "fillOpacity": 0,
-                    "weight": 1}
+    estilo = lambda x: {
+        "color": "black",
+        "fillOpacity": 0,
+        "weight": 1
+    }
 
-    folium.GeoJson(geojson_estado_sp, style_function = estilo,
-        name = "Municipio de SP", key="A").add_to(mapa_estado_sp_calor)
+    folium.GeoJson(
+        geojson_estado_sp,
+        style_function=estilo,
+        name="Municipio de SP",
+        key="A"
+    ).add_to(mapa_estado_sp_calor)
 
-    #Paleta de cores
     indices = [0, 0.3, 0.7, 1]
+    colormap = branca.colormap.StepColormap(
+        ["green", "yellow", "red"], index=indices,
+        caption="Índice Aleatório"
+    )
 
-    colormap = branca.colormap.StepColormap(["green", "yellow", "red"], index = indices,
-                                        caption = "Índice Aleatório")
-
-    dicionario_cores = {0: "green",
-                    0.3: "green",
-                    0.301: "yellow",
-                    0.7: "yellow",
-                    0.701: "red",
-                    1: "red"}
-
+    dicionario_cores = {
+        0: "green",
+        0.3: "green",
+        0.301: "yellow",
+        0.7: "yellow",
+        0.701: "red",
+        1: "red"
+    }
 
     colormap.scale(0, 500).add_to(mapa_estado_sp_calor)
 
-    #Mapa de Calor
-    HeatMap(data = dados2.tolist(),gradient = dicionario_cores,
-    min_opacity = 0.1,
-    radius = 20,
-    blur = 5,
-    name = "Região de Calor").add_to(mapa_estado_sp_calor)
+    HeatMap(
+        data=dados2.tolist(),
+        gradient=dicionario_cores,
+        min_opacity=0.1,
+        radius=20,
+        blur=5,
+        name="Região de Calor"
+    ).add_to(mapa_estado_sp_calor)
 
+    folium.LayerControl(position="topleft").add_to(mapa_estado_sp_calor)
 
-    #Controle de camadas
-    folium.LayerControl(position = "topleft").add_to(mapa_estado_sp_calor)
-        
-    st_folium(mapa_estado_sp_calor, width="100%", height=500, key="mapa_estado_sp_calor")
+    st_folium(mapa_estado_sp_calor, width="100%", height=350, key="mapa_estado_sp_calor")
 
     st.markdown("### Mapa Coropleto - Estado de SP")
 
-    mapa_estado_sp = folium.Map([-22.71579000, -47.77297000], 
-                            tiles = "cartodbpositron",
-                            zoom_start = 7)
+    mapa_estado_sp = folium.Map(
+        [-22.71579000, -47.77297000],
+        tiles="cartodbpositron",
+        zoom_start=7
+    )
 
-    folium.Choropleth(geo_data = geojson_estado_sp,
-                    data = df,
-                    columns = ["CIDADE", "VALOR"],
-                    key_on = "feature.properties.name",
-                    fill_color = "GnBu",
-                    fill_opacity = 0.9,
-                    line_opacity = 0.5,
-                    legend_name = "CIDADES",
-                    nan_fill_color = "white",
-                    name = "Dados").add_to(mapa_estado_sp)
-    
-    st_folium(mapa_estado_sp, width="100%", height=500, key="mapa_estado_sp")
+    folium.Choropleth(
+        geo_data=geojson_estado_sp,
+        data=df,
+        columns=["CIDADE", "VALOR"],
+        key_on="feature.properties.name",
+        fill_color="GnBu",
+        fill_opacity=0.9,
+        line_opacity=0.5,
+        legend_name="CIDADES",
+        nan_fill_color="white",
+        name="Dados"
+    ).add_to(mapa_estado_sp)
+
+    st_folium(mapa_estado_sp, width="100%", height=350, key="mapa_estado_sp")
 
     # #Adicionando a função de destaque
     # estilo = lambda x: {"fillColor": "white",
